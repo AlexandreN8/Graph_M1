@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "App",
+            "request": "launch",
+            "mainClass": "App",
+            "projectName": "graphproject"
+        },
+        {
+            "type": "java",
+            "name": "SuperMain",
+            "request": "launch",
+            "mainClass": "SuperMain",
+            "projectName": "graphproject"
+        },
+        {
+            "type": "java",
+            "name": "App",
+            "request": "launch",
+            "mainClass": "App",
+            "projectName": "Graph_1875c877",
+            "vmArgs": "--module-path 'C:/Program Files (x86)/Java/javafx-sdk-11/lib' --add-modules javafx.controls,javafx.fxml"
+        }
+    ]
+  }
