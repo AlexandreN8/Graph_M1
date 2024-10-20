@@ -154,7 +154,7 @@ public abstract class Graph {
                 }
         
                 // Si on atteint p, vérifier si le chemin revient à Euro (sommet de départ)
-                if (cheminCourant.size() == p) {
+                if (cheminCourant.size() == p) { // note : le nombre d'echange = p - 1
                     if (dernierSommet.equals(sommetDepart)) {
                         // Si le chemin finit déjà à "Euro", on l'ajoute sans modifier
                         String cheminStr = cheminCourant.toString();
@@ -162,12 +162,11 @@ public abstract class Graph {
                         if (!cheminsUniques.contains(cheminStr)) {
                             double valeurRetour = calculerValeur(cheminCourant);
         
-                            // Ajouter à cheminsMu seulement si c'est un des meilleurs chemins
+                            // Ajouter le chemin si on ne depasse pas encore la limite maxChemins
                             if (cheminsMu.size() < maxChemins) {
                                 cheminsMu.add(new PathMu(cheminCourant, valeurRetour));  // Stocker le chemin
                             } else {
-                                // Eviter de depasser x maxChemins (stack overflow)
-                                // Trouver le chemin avec la plus petite valeur
+                                // Sinon remplacer le chemin avec la plus petite valeur pour éviter lee stackOverflow
                                 PathMu cheminMin = cheminsMu.stream()
                                     .min(Comparator.comparingDouble(PathMu::getValeur))
                                     .orElse(null);
@@ -177,6 +176,7 @@ public abstract class Graph {
                                     cheminsMu.add(new PathMu(cheminCourant, valeurRetour));  // Ajouter le nouveau chemin
                                 }
                             }
+                            // Ajouter le chemin à la liste des chemins
                             cheminsUniques.add(cheminStr);
                         }
                     } else {
@@ -188,19 +188,17 @@ public abstract class Graph {
                         if (!cheminsUniques.contains(cheminStr)) {
                             double valeurRetour = calculerValeur(cheminRetourEuro);
         
-                            // Ajouter à cheminsMu seulement si c'est un des meilleurs chemins
+                            // Mêmes verifications que précédemment pour éviter le stack overflow
                             if (cheminsMu.size() < maxChemins) {
-                                cheminsMu.add(new PathMu(cheminRetourEuro, valeurRetour));  // Stocker le chemin
+                                cheminsMu.add(new PathMu(cheminRetourEuro, valeurRetour)); 
                             } else {
-                                // Eviter de depasser x maxChemins (stack overflow)
-                                // Trouver le chemin avec la plus petite valeur
                                 PathMu cheminMin = cheminsMu.stream()
                                     .min(Comparator.comparingDouble(PathMu::getValeur))
                                     .orElse(null);
         
                                 if (cheminMin != null && cheminMin.getValeur() < valeurRetour) {
-                                    cheminsMu.remove(cheminMin);  // Retirer le plus petit chemin
-                                    cheminsMu.add(new PathMu(cheminRetourEuro, valeurRetour));  // Ajouter le nouveau chemin
+                                    cheminsMu.remove(cheminMin); 
+                                    cheminsMu.add(new PathMu(cheminRetourEuro, valeurRetour));
                                 }
                             }
                             cheminsUniques.add(cheminStr);
@@ -208,10 +206,7 @@ public abstract class Graph {
                     }
                 }
             }
-        
-            // Retourner les chemins triés par ordre décroissant de valeur
-            cheminsMu.sort(Comparator.comparingDouble(PathMu::getValeur).reversed());
-        
+            // Retourner la liste des chemins trouvés
             return cheminsMu;
         }
              

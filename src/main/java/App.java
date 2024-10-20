@@ -204,9 +204,9 @@ public class App extends Application {
         // 1. Boutons de contrôle pour les algorithmes (HBox)
         HBox controlButtons = new HBox(10); // Espacement horizontal de 10 pour les boutons
         Button launchBrutForce = new Button("Lancer Brut Force");
-        Button launchCommun = new Button("Lancer Algo commun");
-        Button launchDijkstra = new Button("Lancer Dijkstra Simplifié");
-        Button launchProbabiliste = new Button("Lancer Dijkstra probabiliste");
+        Button launchCommun = new Button("Lancer Simplifié Local");
+        Button launchDijkstra = new Button("Lancer Simplifié Global");
+        Button launchProbabiliste = new Button("Lancer Local probabiliste");
         controlButtons.getChildren().addAll(launchBrutForce, launchCommun, launchDijkstra, launchProbabiliste);
         launchProbabiliste.setVisible(false); // Masquer le bouton pour l'algorithme probabiliste
 
