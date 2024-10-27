@@ -209,10 +209,17 @@ public abstract class Graph {
             // Retourner la liste des chemins trouvés
             return cheminsMu;
         }
-             
-
+        
         // -- 2eme Mandatory : Algorithme de Dijkstra simplifié Local
-        public List<PathMu> maximizeDijkstraSimplifieLocal(Sommet monnaie, int p) {
+        /*
+         * V1 : Cette version de l'algorithme ne considère que les chemin complet (retour en euro) qui font partis de l'optimum
+         * Autrement dit on ne mémorise pas les chemin complet que l'on emprunte pas
+         * 
+         * La V2 quand à elle mémorise les chemins complet que l'on emprunte pas ce qui est une optimisation en temps constant
+         * Note : C'est la V2 qu'on utilise dans le projet
+         * 
+         */
+        public List<PathMu> maximizeDijkstraSimplifieLocalV1(Sommet monnaie, int p) {
             // Liste pour stocker tous les chemins complets
             List<PathMu> cheminsComplets = new ArrayList<>();
         
@@ -274,7 +281,77 @@ public abstract class Graph {
             // Retourner tous les chemins complets avec leurs valeurs
             return cheminsComplets;
         }
+
+        // V2 : mémorisation des chemins
+        public List<PathMu> maximizeDijkstraSimplifieLocal(Sommet monnaie, int p) {
+            List<PathMu> cheminsComplets = new ArrayList<>(); // Liste pour stocker les chemins complets
         
+            // Chemins actuels pour chaque sommet
+            Map<Sommet, PathMu> cheminsActuels = new HashMap<>();
+            cheminsActuels.put(monnaie, new PathMu(new ArrayList<>(List.of(monnaie)), 1.0));
+        
+            // Itérations pour explorer les chemins possibles jusqu'à p étapes
+            for (int k = 1; k <= p; k++) {
+                Map<Sommet, PathMu> nouveauxChemins = new HashMap<>();
+        
+                // Parcourir les chemins actuels
+                for (Map.Entry<Sommet, PathMu> entry : cheminsActuels.entrySet()) {
+                    Sommet sommetCourant = entry.getKey();
+                    PathMu cheminActuel = entry.getValue();
+        
+                    if (k < p) {
+                        // Pour k < p : prolonger les chemins vers les autres sommets
+                        for (Arc arc : arcs) {
+                            if (arc.getSommetDepart().equals(sommetCourant)) {
+                                Sommet sommetArrivee = arc.getSommetArrivee();
+                                List<Sommet> nouveauChemin = new ArrayList<>(cheminActuel.getChemin());
+                                nouveauChemin.add(sommetArrivee);
+                                double nouvelleValeur = cheminActuel.getValeur() * arc.getChange();
+        
+                                PathMu nouveauPathMu = new PathMu(nouveauChemin, nouvelleValeur);
+        
+                                // Comparer avec les autres chemins
+                                if (!nouveauxChemins.containsKey(sommetArrivee) || 
+                                    nouveauxChemins.get(sommetArrivee).getValeur() < nouvelleValeur) {
+                                    nouveauxChemins.put(sommetArrivee, nouveauPathMu);
+                                }
+                            }
+                        }
+                    }
+        
+                    // Mémorisation
+                    // À chaque itération, vérifier si un chemin court est déjà complet et meilleur
+                    Arc arcRetour = trouverArc(sommetCourant, monnaie);
+                    if (arcRetour != null) {
+                        List<Sommet> cheminComplet = new ArrayList<>(cheminActuel.getChemin());
+                        cheminComplet.add(monnaie);
+                        double valeurFinale = cheminActuel.getValeur() * arcRetour.getChange();
+                        
+                        PathMu cheminFinal = new PathMu(cheminComplet, valeurFinale);
+        
+                        boolean estMeilleurChemin = true;
+        
+                        // Vérifier si ce chemin complet est meilleur que ceux existants
+                        for (PathMu chemin : cheminsComplets) {
+                            if (chemin.getChemin().equals(cheminComplet) && chemin.getValeur() >= valeurFinale) {
+                                estMeilleurChemin = false;
+                                break;
+                            }
+                        }
+        
+                        // Si c'est un meilleur chemin ou qu'il n'existe pas, on l'ajoute
+                        if (estMeilleurChemin) {
+                            cheminsComplets.add(cheminFinal);
+                        }
+                    }
+                }
+        
+                // Mettre à jour cheminsActuels avec les nouveaux chemins trouvés (on garde les meilleurs)
+                cheminsActuels = nouveauxChemins;
+            }
+        
+            return cheminsComplets;
+        }        
 
         // -- 1er Opt : Algorithme de Dijkstra simplifié Global (version du poly projet)
         public PathMu maximizeDijkstraSimplifieGlobal(Sommet monnaie, int p) {
