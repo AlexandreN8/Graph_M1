@@ -523,19 +523,20 @@ public class App extends Application {
             // Mettre a jour la chart
             updateChartData();
 
-            // Trier les chemins par rapport à la valeur divisé par le taux de risque
-            cheminsComplets.sort(Comparator.comparingDouble((PathMu chemin) -> chemin.getValeur() / chemin.getAccProbSucces()).reversed());
+            // Trier les chemins par rapport au rapport entre le gain et le risque (G / (1 - Taux de Succès accumulé))
+            cheminsComplets.sort(Comparator.comparingDouble(
+                (PathMu chemin) -> chemin.getValeur() / (1 - chemin.getAccProbSucces())
+            ).reversed());
 
             // Ajouter les chemins mu au résumé avec un formatage clair
             for (PathMu chemin : cheminsComplets) {
-                // Ajouter le chemin formaté au ListView
-                String cheminString = chemin.toStringProba();
+                String cheminString = chemin.toStringProba(); // Adapter selon votre format souhaité
                 cheminResume.getItems().add(cheminString);
             }
 
-            // Mettre en surbrillance le chemin avec la valeur maximale
+            // Mettre en surbrillance le chemin avec la meilleure valeur de rapport (gain / risque)
             PathMu maxChemin = cheminsComplets.stream()
-                .max((chemin1, chemin2) -> Double.compare(chemin1.getValeur(), chemin2.getValeur()))
+                .max(Comparator.comparingDouble(chemin -> chemin.getValeur() / (1 - chemin.getAccProbSucces())))
                 .orElse(null);
 
             if (maxChemin != null) {

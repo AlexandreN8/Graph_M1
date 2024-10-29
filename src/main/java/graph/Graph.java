@@ -464,54 +464,29 @@ public abstract class Graph {
                                 }
                             }
                         }
-                    } else {
-                        // k = p : Forcer le retour à la devise de départ
-                        Arc arcRetour = trouverArc(sommetCourant, monnaie);
-                        if (arcRetour != null) {
-                            List<Sommet> cheminComplet = new ArrayList<>(cheminActuel.getChemin());
-                            cheminComplet.add(monnaie);
-        
-                            double valeurFinale = cheminActuel.getValeur() * arcRetour.getChange();
-                            double accTauxSucces = cheminActuel.getAccProbSucces(); // Probabilité de succès accumulée
-        
-                            // Si l'arc de retour est probabiliste, multiplier le succès
-                            if (arcRetour instanceof ArcProba) {
-                                accTauxSucces *= (1 - ((ArcProba) arcRetour).getRiskFactor()); // Multiplier la probabilité de succès
-                            }
-        
-                            PathMu cheminFinal = new PathMu(cheminComplet, valeurFinale, accTauxSucces);
-                            cheminsComplets.add(cheminFinal);
-                        }
                     }
-
-                    // Mémorisation des chemins complets
-                    // À chaque itération, vérifier si un chemin court est déjà complet et meilleur
+                    // Vérifier si un chemin complet est atteint et estMeilleur
                     Arc arcRetour = trouverArc(sommetCourant, monnaie);
-
                     if (arcRetour != null) {
                         List<Sommet> cheminComplet = new ArrayList<>(cheminActuel.getChemin());
                         cheminComplet.add(monnaie);
                         double valeurFinale = cheminActuel.getValeur() * arcRetour.getChange();
-                        double accTauxSucces = cheminActuel.getAccProbSucces(); // Probabilité de succès accumulée
-        
-                        // Si l'arc de retour est probabiliste, multiplier le succès
+                        double accTauxSucces = cheminActuel.getAccProbSucces();
+
                         if (arcRetour instanceof ArcProba) {
-                            accTauxSucces *= (1 - ((ArcProba) arcRetour).getRiskFactor()); // Multiplier la probabilité de succès
+                            accTauxSucces *= (1 - ((ArcProba) arcRetour).getRiskFactor());
                         }
-        
+
                         PathMu cheminFinal = new PathMu(cheminComplet, valeurFinale, accTauxSucces);
-        
                         boolean estMeilleurChemin = true;
-        
-                        // Vérifier si ce chemin complet est meilleur que ceux existants
+
                         for (PathMu chemin : cheminsComplets) {
                             if (chemin.getChemin().equals(cheminComplet) && chemin.getValeur() >= valeurFinale) {
                                 estMeilleurChemin = false;
                                 break;
                             }
                         }
-        
-                        // Si c'est un meilleur chemin ou qu'il n'existe pas, on l'ajoute
+
                         if (estMeilleurChemin) {
                             cheminsComplets.add(cheminFinal);
                         }
