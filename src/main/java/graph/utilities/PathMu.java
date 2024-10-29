@@ -61,7 +61,6 @@ public class PathMu {
     
         // Formatter le taux de risque en pourcentage
         String probSucces = String.format("%.2f", accProbSucces * 100);
-        System.out.println(accProbSucces);
     
         // Déterminer le label de probabilité de succès en fonction du taux calculé
         String riskLabel;
