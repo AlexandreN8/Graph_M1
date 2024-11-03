@@ -190,7 +190,78 @@ public abstract class Graph {
         }
     }
 
-    // -- 2eme Mandatory : Algorithme de Dijkstra simplifié Local
+    // -- 2eme Mandatory : Algorithme de Dijkstra simplifié Global
+    public PathMu maximizeDijkstraSimplifieGlobal(Sommet monnaie, int p) {
+        // Initialisation de la map pour stocker la meilleure valeur et le chemin
+        // correspondant vers chaque sommet
+        Map<Sommet, PathMu> cheminsActuels = new HashMap<>();
+        cheminsActuels.put(monnaie, new PathMu(new ArrayList<>(List.of(monnaie)), 1.0)); // Chemin initial de la devise
+
+        // Itérations (de k = 1 jusqu'à p) pour explorer les chemins possibles
+        for (int k = 1; k <= p; k++) {
+            Map<Sommet, PathMu> nouveauxChemins = new HashMap<>(cheminsActuels); // Copier les meilleurs chemins trouvés
+            // Parcourir toutes les devises (sommets) pour mettre à jour les meilleurs
+            // chemins
+            for (Sommet sommetJ : sommets) {
+                PathMu meilleurChemin = cheminsActuels.get(sommetJ); // Chemin actuel vers sommetJ
+
+                if (k < p) {
+                    // Comparer les chemins intermédiaires pour trouver un meilleur chemin via
+                    // sommetI
+                    for (Arc arc : arcs) {
+                        if (arc.getSommetArrivee().equals(sommetJ)) {
+                            Sommet sommetI = arc.getSommetDepart();
+                            PathMu cheminDepuisI = cheminsActuels.get(sommetI);
+
+                            if (cheminDepuisI != null) {
+                                // Calculer la nouvelle valeur de conversion en passant par sommetI vers sommetJ
+                                double nouvelleValeur = cheminDepuisI.getValeur() * arc.getChange();
+                                List<Sommet> nouveauChemin = new ArrayList<>(cheminDepuisI.getChemin());
+                                nouveauChemin.add(sommetJ);
+
+                                // Met à jour si une meilleure valeur est trouvée
+                                if (meilleurChemin == null || nouvelleValeur > meilleurChemin.getValeur()) {
+                                    meilleurChemin = new PathMu(nouveauChemin, nouvelleValeur);
+                                    nouveauxChemins.put(sommetJ, meilleurChemin);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // À l'itération finale (k = p), mettre à jour le chemin de retour à la devise
+                    // de départ
+                    for (Arc arcRetour : arcs) {
+                        if (arcRetour.getSommetArrivee().equals(monnaie)) {
+                            Sommet sommetI = arcRetour.getSommetDepart();
+                            PathMu cheminDepuisI = cheminsActuels.get(sommetI);
+
+                            if (cheminDepuisI != null) {
+                                // Construire le chemin de retour complet et calculer la nouvelle valeur de
+                                // conversion
+                                List<Sommet> cheminComplet = new ArrayList<>(cheminDepuisI.getChemin());
+                                cheminComplet.add(monnaie);
+                                double nouvelleValeur = cheminDepuisI.getValeur() * arcRetour.getChange();
+
+                                // Comparer avec la valeur précédente et mettre à jour
+                                if (!nouveauxChemins.containsKey(monnaie)
+                                        || nouvelleValeur > nouveauxChemins.get(monnaie).getValeur()) {
+                                    nouveauxChemins.put(monnaie, new PathMu(cheminComplet, nouvelleValeur));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Mettre à jour cheminsActuels pour la prochaine itération
+            cheminsActuels = nouveauxChemins;
+        }
+
+        // Retourne le meilleur chemin final vers la devise de départ
+        return cheminsActuels.get(monnaie);
+    }
+
+    // -- 1er Opt : Algorithme de Dijkstra simplifié Local (explore en avant)
     /*
      * V1 : Cette version de l'algorithme ne considère que les chemin complet
      * (retour en euro) qui font partis de l'optimum
@@ -336,77 +407,6 @@ public abstract class Graph {
         }
 
         return cheminsComplets;
-    }
-
-    // -- 1er Opt : Algorithme de Dijkstra simplifié Global (version du poly projet)
-    public PathMu maximizeDijkstraSimplifieGlobal(Sommet monnaie, int p) {
-        // Initialisation de la map pour stocker la meilleure valeur et le chemin
-        // correspondant vers chaque sommet
-        Map<Sommet, PathMu> cheminsActuels = new HashMap<>();
-        cheminsActuels.put(monnaie, new PathMu(new ArrayList<>(List.of(monnaie)), 1.0)); // Chemin initial de la devise
-
-        // Itérations (de k = 1 jusqu'à p) pour explorer les chemins possibles
-        for (int k = 1; k <= p; k++) {
-            Map<Sommet, PathMu> nouveauxChemins = new HashMap<>(cheminsActuels); // Copier les meilleurs chemins trouvés
-            // Parcourir toutes les devises (sommets) pour mettre à jour les meilleurs
-            // chemins
-            for (Sommet sommetJ : sommets) {
-                PathMu meilleurChemin = cheminsActuels.get(sommetJ); // Chemin actuel vers sommetJ
-
-                if (k < p) {
-                    // Comparer les chemins intermédiaires pour trouver un meilleur chemin via
-                    // sommetI
-                    for (Arc arc : arcs) {
-                        if (arc.getSommetArrivee().equals(sommetJ)) {
-                            Sommet sommetI = arc.getSommetDepart();
-                            PathMu cheminDepuisI = cheminsActuels.get(sommetI);
-
-                            if (cheminDepuisI != null) {
-                                // Calculer la nouvelle valeur de conversion en passant par sommetI vers sommetJ
-                                double nouvelleValeur = cheminDepuisI.getValeur() * arc.getChange();
-                                List<Sommet> nouveauChemin = new ArrayList<>(cheminDepuisI.getChemin());
-                                nouveauChemin.add(sommetJ);
-
-                                // Met à jour si une meilleure valeur est trouvée
-                                if (meilleurChemin == null || nouvelleValeur > meilleurChemin.getValeur()) {
-                                    meilleurChemin = new PathMu(nouveauChemin, nouvelleValeur);
-                                    nouveauxChemins.put(sommetJ, meilleurChemin);
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    // À l'itération finale (k = p), mettre à jour le chemin de retour à la devise
-                    // de départ
-                    for (Arc arcRetour : arcs) {
-                        if (arcRetour.getSommetArrivee().equals(monnaie)) {
-                            Sommet sommetI = arcRetour.getSommetDepart();
-                            PathMu cheminDepuisI = cheminsActuels.get(sommetI);
-
-                            if (cheminDepuisI != null) {
-                                // Construire le chemin de retour complet et calculer la nouvelle valeur de
-                                // conversion
-                                List<Sommet> cheminComplet = new ArrayList<>(cheminDepuisI.getChemin());
-                                cheminComplet.add(monnaie);
-                                double nouvelleValeur = cheminDepuisI.getValeur() * arcRetour.getChange();
-
-                                // Comparer avec la valeur précédente et mettre à jour
-                                if (!nouveauxChemins.containsKey(monnaie)
-                                        || nouvelleValeur > nouveauxChemins.get(monnaie).getValeur()) {
-                                    nouveauxChemins.put(monnaie, new PathMu(cheminComplet, nouvelleValeur));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Mettre à jour cheminsActuels pour la prochaine itération
-            cheminsActuels = nouveauxChemins;
-        }
-
-        // Retourne le meilleur chemin final vers la devise de départ
-        return cheminsActuels.get(monnaie);
     }
 
     public List<PathMu> maximizeLocalProba(Sommet monnaie, int p) {
